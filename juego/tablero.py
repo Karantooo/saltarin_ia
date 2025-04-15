@@ -20,7 +20,7 @@ class Tablero:
             [Casilla(i, j, matriz_valores[i][j]) for j in range(columnas)]
             for i in range(filas)
         ]
-        self.agente = Agente(*inicio, filas - 1, columnas - 1)
+        self.agente = Agente(*inicio,columnas - 1, filas - 1)
         self.tamano_celda = TAM_CASILLA
         self.ancho = max(columnas * self.tamano_celda, self.tamano_celda * 3)
         self.alto = (filas + 1) * self.tamano_celda

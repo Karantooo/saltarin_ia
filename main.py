@@ -6,7 +6,7 @@ if __name__ == "__main__":
     inicio = (0, 0)
     objetivo = (1, 1)
     matriz_valores = [
-        [3, 4],
+        [1, 4],
         [3, 3],
         [3, 1],
         [4, 2],
