@@ -75,6 +75,11 @@ class Tablero:
                     if evento.key == pygame.K_LEFT:
                         self.agente.mover_horizontal(-desplazamiento)
 
+                    # Verificar victoria
+                    if (self.agente.fila, self.agente.columna) == (self.objetivo[0], self.objetivo[1]):
+                        print("GG")
+                        corriendo = False
+
             self.dibujar()
         pygame.quit()
 
