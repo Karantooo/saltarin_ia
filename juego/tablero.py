@@ -1,29 +1,12 @@
 import pygame
 from juego.constants import *
+from juego.agente import Agente
 
 class Casilla:
     def __init__(self, fila, columna, valor):
         self.fila = fila
         self.columna = columna
         self.valor = valor  # valor saltarín
-
-class Agente:
-    def __init__(self, fila, columna, x_frontera, y_frontera):
-        self.fila = fila
-        self.columna = columna
-        self.x_frontera = x_frontera
-        self.y_frontera = y_frontera
-        self.movimientos_dados = 0
-
-    def mover_horizontal(self, distancia):
-        if 0 <= self.columna + distancia <= self.x_frontera:
-            self.columna += distancia
-            self.movimientos_dados += 1
-
-    def mover_vertical(self, distancia):
-        if 0 <= self.fila + distancia <= self.x_frontera:
-            self.fila += distancia
-            self.movimientos_dados += 1
 
 
 class Tablero:
@@ -39,9 +22,9 @@ class Tablero:
         ]
         self.agente = Agente(*inicio, filas - 1, columnas - 1)
         self.tamano_celda = TAM_CASILLA
-        self.ancho = columnas * self.tamano_celda
-        self.alto = filas * self.tamano_celda
-        self.ventana = pygame.display.set_mode((self.ancho, self.alto + 70))
+        self.ancho = max(columnas * self.tamano_celda, self.tamano_celda * 3)
+        self.alto = (filas + 1) * self.tamano_celda
+        self.ventana = pygame.display.set_mode((self.ancho, self.alto))
         pygame.display.set_caption("Laberinto Saltarín")
 
     def dibujar(self):
@@ -65,6 +48,14 @@ class Tablero:
         ag_y = self.agente.fila * self.tamano_celda + self.tamano_celda // 2
         pygame.draw.circle(self.ventana, BLUE, (ag_x, ag_y), self.tamano_celda // 3)
 
+        # Dibujar puntuacion
+        texto = pygame.font.SysFont(None, 24).render(
+            "Movimientos dados: " + str(self.agente.movimientos_dados),
+            True,
+            BLACK
+        )
+        self.ventana.blit(texto, (0, self.filas * self.tamano_celda))
+
         pygame.display.flip()
 
     def loop(self):
@@ -74,17 +65,14 @@ class Tablero:
                 if evento.type == pygame.QUIT:
                     corriendo = False
                 elif evento.type == pygame.KEYDOWN:
+                    desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
                     if evento.key == pygame.K_DOWN:
-                        desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
                         self.agente.mover_vertical(desplazamiento)
                     if evento.key == pygame.K_UP:
-                        desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
                         self.agente.mover_vertical(-desplazamiento)
                     if evento.key == pygame.K_RIGHT:
-                        desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
                         self.agente.mover_horizontal(desplazamiento)
                     if evento.key == pygame.K_LEFT:
-                        desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
                         self.agente.mover_horizontal(-desplazamiento)
 
             self.dibujar()
