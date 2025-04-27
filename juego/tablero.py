@@ -2,12 +2,7 @@ import pygame
 from juego.constants import *
 from juego.agente import Agente
 import time
-
-class Casilla:
-    def __init__(self, fila, columna, valor):
-        self.fila = fila
-        self.columna = columna
-        self.valor = valor  # valor saltarín
+from juego.casilla import Casilla, EstadosExploracion
 
 
 class Tablero:
@@ -40,7 +35,7 @@ class Tablero:
 
     def loop(self):
         corriendo = True
-        self.dfs_solucion(0.1)
+        #self.dfs_solucion(0.0)
         while corriendo:
             for evento in pygame.event.get():
                 if evento.type == pygame.QUIT:
@@ -67,10 +62,15 @@ class Tablero:
     def dfs_solucion(self, tiempo):
 
         coordenadas = (self.agente.fila, self.agente.columna)
+        if coordenadas == self.objetivo:
+            self.dibujar()
+            return True
 
         # Evitar visitar la misma casilla
         if coordenadas in self.coordenadas_vistas:
             return False
+
+        self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORANDO
 
         self.coordenadas_vistas.add(coordenadas)
         self.dibujar()
@@ -94,8 +94,31 @@ class Tablero:
                 self.agente.fila, self.agente.columna = fila_orig, col_orig
                 self.dibujar()
                 time.sleep(tiempo)
+        self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORADO
 
         return False
+
+    def mostrar_sin_solucion(self):
+        self.__mensaje_final("No hay solucion", RED)
+
+    def __mensaje_final(self, mensaje, color):
+        dimensiones_ventana = (max(self.ancho, 600), max(self.alto, 600))
+        self.ventana = pygame.display.set_mode(dimensiones_ventana)
+        # Vaciar la pantalla (rellenarla de blanco)
+        self.ventana.fill(WHITE)
+
+        # Crear el texto
+        fuente = pygame.font.SysFont(None, 48)
+        texto = fuente.render(mensaje, True, color)
+
+        # Obtener el rectángulo del texto y centrarlo
+        rect = texto.get_rect(center=(dimensiones_ventana[0] // 2, dimensiones_ventana[1] // 2))
+
+        # Dibujar el texto
+        self.ventana.blit(texto, rect)
+
+        # Actualizar la pantalla
+        pygame.display.flip()
 
     def __movimientos_cantidad_dibujar(self):
         texto = pygame.font.SysFont(None, 24).render(
@@ -121,7 +144,10 @@ class Tablero:
             for j in range(self.columnas):
                 x = j * self.tamano_celda
                 y = i * self.tamano_celda
-                pygame.draw.rect(self.ventana, GRAY, (x, y, self.tamano_celda, self.tamano_celda), 1)
+
+                color_casilla = self.casillas[i][j].explorado
+
+                pygame.draw.rect(self.ventana, color_casilla, (x, y, self.tamano_celda, self.tamano_celda), 0)
                 valor = self.casillas[i][j].valor
                 texto = pygame.font.SysFont(None, 24).render(str(valor), True, BLACK)
                 self.ventana.blit(texto, (x + 20, y + 20))
