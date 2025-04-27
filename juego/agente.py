@@ -13,6 +13,12 @@ class Agente:
             return True
         return False
 
+    def es_coordenada_valida_horizontal(self, distancia):
+        return 0 <= self.columna + distancia <= self.x_frontera
+
+    def es_coordenada_valida_vertical(self, distancia):
+        return 0 <= self.fila + distancia <= self.y_frontera
+
     def mover_vertical(self, distancia):
         if 0 <= self.fila + distancia <= self.y_frontera:
             self.fila += distancia

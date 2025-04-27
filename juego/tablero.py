@@ -2,6 +2,7 @@ import pygame
 from juego.constants import *
 from juego.agente import Agente
 import time
+from queue import Queue
 from juego.casilla import Casilla, EstadosExploracion
 
 
@@ -98,8 +99,52 @@ class Tablero:
 
         return False
 
+    def bfs_solucion(self, tiempo):
+        cola = Queue()
+        cola.put((self.agente.fila, self.agente.columna))
+
+        while not cola.empty():
+            posicion = cola.get()
+            if posicion in self.coordenadas_vistas:
+                continue
+
+            self.agente.movimientos_dados += 1
+            time.sleep(tiempo)
+            self.coordenadas_vistas.add(posicion)
+
+            if posicion == self.objetivo:
+                self.dibujar()
+                return True
+
+            self.agente.fila = posicion[0]
+            self.agente.columna = posicion[1]
+            self.dibujar()
+
+            desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
+            derecha = (self.agente.fila, self.agente.columna + desplazamiento)
+            izquierda = (self.agente.fila, self.agente.columna - desplazamiento)
+            arriba = (self.agente.fila + desplazamiento, self.agente.columna)
+            abajo = (self.agente.fila - desplazamiento, self.agente.columna)
+
+            if self.agente.es_coordenada_valida_horizontal(desplazamiento):
+                cola.put(derecha)
+            if self.agente.es_coordenada_valida_horizontal(-desplazamiento):
+                cola.put(izquierda)
+
+            if self.agente.es_coordenada_valida_vertical(desplazamiento):
+                cola.put(arriba)
+            if self.agente.es_coordenada_valida_vertical(-desplazamiento):
+                cola.put(abajo)
+            self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORADO
+
+        return False
+
+
     def mostrar_sin_solucion(self):
         self.__mensaje_final("No hay solucion", RED)
+
+    def mostrar_con_solucion(self):
+        self.__mensaje_final(f"Se encontro solucion {self.agente.movimientos_dados}", GREEN)
 
     def __mensaje_final(self, mensaje, color):
         dimensiones_ventana = (max(self.ancho, 600), max(self.alto, 600))
