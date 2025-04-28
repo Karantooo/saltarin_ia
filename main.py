@@ -15,7 +15,14 @@ if __name__ == "__main__":
         [4, 1, 4, 3, 2]
     ]
     tablero = Tablero(m, n, inicio, objetivo, matriz_valores)
-    if tablero.bfs_solucion(0.3):
+    solucion = tablero.bfs_solucion(0.1)
+    if solucion[0]:
+        camino = solucion[1][::-1]
+        print (camino)
+        camino
+        tablero.dibujar_camino(camino)
+
+        time.sleep(1)
         tablero.mostrar_con_solucion()
     else:
         tablero.mostrar_sin_solucion()

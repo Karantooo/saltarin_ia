@@ -24,6 +24,7 @@ class Tablero:
         self.ventana = pygame.display.set_mode((self.ancho, self.alto))
 
         self.coordenadas_vistas = set()
+        self.padres = dict()
         pygame.display.set_caption("Laberinto Saltarín")
 
     def dibujar(self):
@@ -61,15 +62,14 @@ class Tablero:
         pygame.quit()
 
     def dfs_solucion(self, tiempo):
-
         coordenadas = (self.agente.fila, self.agente.columna)
         if coordenadas == self.objetivo:
             self.dibujar()
-            return True
+            return [True, [coordenadas]]
 
         # Evitar visitar la misma casilla
         if coordenadas in self.coordenadas_vistas:
-            return False
+            return [False, []]
 
         self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORANDO
 
@@ -82,43 +82,52 @@ class Tablero:
         # Intentar mover en las 4 direcciones
         for mover in [self.agente.mover_horizontal, self.agente.mover_vertical]:
             for signo in [1, -1]:
-                # Guardar coordenadas originales
                 fila_orig, col_orig = self.agente.fila, self.agente.columna
 
-                # Intentar mover
                 desplazamiento = signo * desplazamiento
                 mover(desplazamiento)
-                if self.dfs_solucion(tiempo):
-                    return True  # Terminar si se encontró la solución
+
+                respuesta = self.dfs_solucion(tiempo)
+                if respuesta[0]:
+                    respuesta[1].append(coordenadas)
+                    antes_de_enviar = [True, respuesta[1]]
+                    print(antes_de_enviar)
+                    return antes_de_enviar
 
                 # Volver atrás (backtrack)
                 self.agente.fila, self.agente.columna = fila_orig, col_orig
                 self.dibujar()
                 time.sleep(tiempo)
         self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORADO
+        self.dibujar()
 
-        return False
+        return [False, []]
 
     def bfs_solucion(self, tiempo):
         cola = Queue()
-        cola.put((self.agente.fila, self.agente.columna))
+        inicio = (self.agente.fila, self.agente.columna)
+        cola.put(inicio)
+        self.padres[inicio] = (-1, -1)
+        self.coordenadas_vistas.add(inicio)  # ← Aquí marcamos como visto de inmediato
 
         while not cola.empty():
             posicion = cola.get()
-            if posicion in self.coordenadas_vistas:
-                continue
-
-            self.agente.movimientos_dados += 1
-            time.sleep(tiempo)
-            self.coordenadas_vistas.add(posicion)
-
-            if posicion == self.objetivo:
-                self.dibujar()
-                return True
 
             self.agente.fila = posicion[0]
             self.agente.columna = posicion[1]
+            self.agente.movimientos_dados += 1
+            time.sleep(tiempo)
             self.dibujar()
+
+            if posicion == self.objetivo:
+                pivote = posicion
+                camino = []
+                while self.padres[pivote] != (-1, -1):
+                    camino.append(pivote)
+                    pivote = self.padres[pivote]
+                camino.append(pivote)
+                camino.reverse()
+                return (True, camino)
 
             desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
             derecha = (self.agente.fila, self.agente.columna + desplazamiento)
@@ -127,17 +136,29 @@ class Tablero:
             abajo = (self.agente.fila - desplazamiento, self.agente.columna)
 
             if self.agente.es_coordenada_valida_horizontal(desplazamiento):
-                cola.put(derecha)
+                if derecha not in self.coordenadas_vistas:
+                    self.padres[derecha] = posicion
+                    self.coordenadas_vistas.add(derecha)
+                    cola.put(derecha)
             if self.agente.es_coordenada_valida_horizontal(-desplazamiento):
-                cola.put(izquierda)
-
+                if izquierda not in self.coordenadas_vistas:
+                    self.padres[izquierda] = posicion
+                    self.coordenadas_vistas.add(izquierda)
+                    cola.put(izquierda)
             if self.agente.es_coordenada_valida_vertical(desplazamiento):
-                cola.put(arriba)
+                if arriba not in self.coordenadas_vistas:
+                    self.padres[arriba] = posicion
+                    self.coordenadas_vistas.add(arriba)
+                    cola.put(arriba)
             if self.agente.es_coordenada_valida_vertical(-desplazamiento):
-                cola.put(abajo)
+                if abajo not in self.coordenadas_vistas:
+                    self.padres[abajo] = posicion
+                    self.coordenadas_vistas.add(abajo)
+                    cola.put(abajo)
+
             self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORADO
 
-        return False
+        return (False, [])
 
 
     def mostrar_sin_solucion(self):
@@ -145,6 +166,26 @@ class Tablero:
 
     def mostrar_con_solucion(self):
         self.__mensaje_final(f"Se encontro solucion {self.agente.movimientos_dados}", GREEN)
+
+    def dibujar_camino(self, camino, color=BLACK, grosor=3):
+        if len(camino) < 2:
+            return  # No hay líneas que dibujar
+
+        for i in range(len(camino) - 1):
+            fila1, col1 = camino[i]
+            fila2, col2 = camino[i + 1]
+
+            # Calcular centro de la primera casilla
+            x1 = col1 * self.tamano_celda + self.tamano_celda // 2
+            y1 = fila1 * self.tamano_celda + self.tamano_celda // 2
+
+            # Calcular centro de la segunda casilla
+            x2 = col2 * self.tamano_celda + self.tamano_celda // 2
+            y2 = fila2 * self.tamano_celda + self.tamano_celda // 2
+
+            pygame.draw.line(self.ventana, color, (x1, y1), (x2, y2), grosor)
+        pygame.display.flip()
+
 
     def __mensaje_final(self, mensaje, color):
         dimensiones_ventana = (max(self.ancho, 600), max(self.alto, 600))
