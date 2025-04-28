@@ -2,7 +2,7 @@ import pygame
 from juego.constants import *
 from juego.agente import Agente
 import time
-from queue import Queue
+from queue import Queue, PriorityQueue
 from juego.casilla import Casilla, EstadosExploracion
 
 
@@ -155,6 +155,64 @@ class Tablero:
                     self.padres[abajo] = posicion
                     self.coordenadas_vistas.add(abajo)
                     cola.put(abajo)
+
+            self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORADO
+
+        return (False, [])
+
+    def ucs_solucion(self, tiempo):
+        cola = PriorityQueue()
+        inicio = (self.agente.fila, self.agente.columna)
+        cola.put((0, inicio))
+        self.padres[inicio] = ((-1, -1), 0)
+        self.coordenadas_vistas.add(inicio)  # ← Aquí marcamos como visto de inmediato
+
+        while not cola.empty():
+
+            posicion = (cola.get())[1]
+
+            self.agente.fila = posicion[0]
+            self.agente.columna = posicion[1]
+            self.agente.movimientos_dados += 1
+            time.sleep(tiempo)
+            self.dibujar()
+
+            if posicion == self.objetivo:
+                pivote = posicion
+                camino = []
+                while self.padres[pivote][0] != (-1, -1):
+                    camino.append(pivote)
+                    pivote = self.padres[pivote][0]
+                camino.append(pivote)
+                camino.reverse()
+                return (True, camino)
+
+            desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
+            derecha = (self.agente.fila, self.agente.columna + desplazamiento)
+            izquierda = (self.agente.fila, self.agente.columna - desplazamiento)
+            arriba = (self.agente.fila + desplazamiento, self.agente.columna)
+            abajo = (self.agente.fila - desplazamiento, self.agente.columna)
+
+            if self.agente.es_coordenada_valida_horizontal(desplazamiento):
+                if derecha not in self.coordenadas_vistas:
+                    self.padres[derecha] = (posicion, desplazamiento + self.padres[posicion][1])
+                    self.coordenadas_vistas.add(derecha)
+                    cola.put((desplazamiento + self.padres[posicion][1], derecha))
+            if self.agente.es_coordenada_valida_horizontal(-desplazamiento):
+                if izquierda not in self.coordenadas_vistas:
+                    self.padres[izquierda] = (posicion, desplazamiento + self.padres[posicion][1])
+                    self.coordenadas_vistas.add(izquierda)
+                    cola.put((desplazamiento + self.padres[posicion][1], izquierda))
+            if self.agente.es_coordenada_valida_vertical(desplazamiento):
+                if arriba not in self.coordenadas_vistas:
+                    self.padres[arriba] = (posicion, desplazamiento + self.padres[posicion][1])
+                    self.coordenadas_vistas.add(arriba)
+                    cola.put((desplazamiento + self.padres[posicion][1], arriba))
+            if self.agente.es_coordenada_valida_vertical(-desplazamiento):
+                if abajo not in self.coordenadas_vistas:
+                    self.padres[abajo] = (posicion, desplazamiento + self.padres[posicion][1])
+                    self.coordenadas_vistas.add(abajo)
+                    cola.put((desplazamiento + self.padres[posicion][1], abajo))
 
             self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORADO
 
