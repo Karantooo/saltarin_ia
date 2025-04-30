@@ -37,7 +37,6 @@ class Tablero:
 
     def loop(self):
         corriendo = True
-        #self.dfs_solucion(0.0)
         while corriendo:
             for evento in pygame.event.get():
                 if evento.type == pygame.QUIT:
@@ -53,7 +52,6 @@ class Tablero:
                     if evento.key == pygame.K_LEFT:
                         self.agente.mover_horizontal(-desplazamiento)
 
-                    # Verificar victoria
                     if (self.agente.fila, self.agente.columna) == (self.objetivo[0], self.objetivo[1]):
                         print("GG")
                         corriendo = False
@@ -67,7 +65,6 @@ class Tablero:
             self.dibujar()
             return [True, [coordenadas]]
 
-        # Evitar visitar la misma casilla
         if coordenadas in self.coordenadas_vistas:
             return False, []
 
@@ -79,7 +76,6 @@ class Tablero:
 
         desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
 
-        # Intentar mover en las 4 direcciones
         for mover in [self.agente.mover_horizontal, self.agente.mover_vertical]:
             for signo in [1, -1]:
                 fila_orig, col_orig = self.agente.fila, self.agente.columna
@@ -94,7 +90,6 @@ class Tablero:
                     print(antes_de_enviar)
                     return antes_de_enviar
 
-                # Volver atrás (backtrack)
                 self.agente.fila, self.agente.columna = fila_orig, col_orig
                 self.dibujar()
                 time.sleep(tiempo)
@@ -155,7 +150,7 @@ class Tablero:
     def ucs_solucion(self, tiempo):
         return self.__best_first_search(tiempo, lambda coord : 0)
 
-    def a_star(self, tiempo):
+    def a_star_solucion(self, tiempo):
         distancia_manhattan = lambda coord: abs(coord[0] - self.objetivo[0]) + abs(coord[1] - self.objetivo[1])
         return self.__best_first_search(tiempo, distancia_manhattan)
 
@@ -218,17 +213,15 @@ class Tablero:
 
     def dibujar_camino(self, camino, color=BLACK, grosor=3):
         if len(camino) < 2:
-            return  # No hay líneas que dibujar
+            return
 
         for i in range(len(camino) - 1):
             fila1, col1 = camino[i]
             fila2, col2 = camino[i + 1]
 
-            # Calcular centro de la primera casilla
             x1 = col1 * self.tamano_celda + self.tamano_celda // 2
             y1 = fila1 * self.tamano_celda + self.tamano_celda // 2
 
-            # Calcular centro de la segunda casilla
             x2 = col2 * self.tamano_celda + self.tamano_celda // 2
             y2 = fila2 * self.tamano_celda + self.tamano_celda // 2
 
@@ -239,20 +232,15 @@ class Tablero:
     def __mensaje_final(self, mensaje, color):
         dimensiones_ventana = (max(self.ancho, 600), max(self.alto, 600))
         self.ventana = pygame.display.set_mode(dimensiones_ventana)
-        # Vaciar la pantalla (rellenarla de blanco)
         self.ventana.fill(WHITE)
 
-        # Crear el texto
         fuente = pygame.font.SysFont(None, 48)
         texto = fuente.render(mensaje, True, color)
 
-        # Obtener el rectángulo del texto y centrarlo
         rect = texto.get_rect(center=(dimensiones_ventana[0] // 2, dimensiones_ventana[1] // 2))
 
-        # Dibujar el texto
         self.ventana.blit(texto, rect)
 
-        # Actualizar la pantalla
         pygame.display.flip()
 
     def __movimientos_cantidad_dibujar(self):

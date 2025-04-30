@@ -13,7 +13,7 @@ if __name__ == "__main__":
         "DFS": Tablero.dfs_solucion,
         "BFS": Tablero.bfs_solucion,
         "UCS": Tablero.ucs_solucion,
-        "A*": Tablero.a_star
+        "A*": Tablero.a_star_solucion
     }
 
     for tablero in tableros:
