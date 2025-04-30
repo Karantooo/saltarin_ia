@@ -69,7 +69,7 @@ class Tablero:
 
         # Evitar visitar la misma casilla
         if coordenadas in self.coordenadas_vistas:
-            return [False, []]
+            return False, []
 
         self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORANDO
 
@@ -101,7 +101,7 @@ class Tablero:
         self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORADO
         self.dibujar()
 
-        return [False, []]
+        return False, []
 
     def bfs_solucion(self, tiempo):
         cola = Queue()
@@ -127,7 +127,7 @@ class Tablero:
                     pivote = self.padres[pivote]
                 camino.append(pivote)
                 camino.reverse()
-                return (True, camino)
+                return True, camino
 
             desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
             siguiente_desplazamiento = desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
@@ -165,7 +165,7 @@ class Tablero:
         inicio = (self.agente.fila, self.agente.columna)
         cola.put((0, inicio))
         self.padres[inicio] = ((-1, -1), 0)
-        self.coordenadas_vistas.add(inicio)  # ← Aquí marcamos como visto de inmediato
+        self.coordenadas_vistas.add(inicio)
 
         while not cola.empty():
 
@@ -207,7 +207,7 @@ class Tablero:
 
             self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORADO
 
-        return (False, [])
+        return False, []
 
     def mostrar_sin_solucion(self):
         self.__mensaje_final("No hay solucion", RED)

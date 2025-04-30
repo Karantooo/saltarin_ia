@@ -15,7 +15,7 @@ if __name__ == "__main__":
         "UCS": Tablero.ucs_solucion,
         "A*": Tablero.a_star
     }
-    print(f"El algoritmo seleccionado es {algoritmo_seleccionado}")
+
     for tablero in tableros:
         m, n, inicio, objetivo, matriz_valores = tablero
         tablero = Tablero(m, n, inicio, objetivo, matriz_valores)
