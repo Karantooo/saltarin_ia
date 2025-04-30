@@ -24,7 +24,7 @@ def seleccionar_archivo():
 
 
 def seleccionar_algoritmo(value, _):
-    algoritmo_seleccionado[0] = value
+    algoritmo_seleccionado[0] = value[0][0]
     print("Algoritmo seleccionado:", value)
 
 def comenzar():

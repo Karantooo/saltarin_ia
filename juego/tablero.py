@@ -130,37 +130,37 @@ class Tablero:
                 return (True, camino)
 
             desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
-            derecha = (self.agente.fila, self.agente.columna + desplazamiento)
-            izquierda = (self.agente.fila, self.agente.columna - desplazamiento)
-            arriba = (self.agente.fila + desplazamiento, self.agente.columna)
-            abajo = (self.agente.fila - desplazamiento, self.agente.columna)
+            siguiente_desplazamiento = desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
 
-            if self.agente.es_coordenada_valida_horizontal(desplazamiento):
-                if derecha not in self.coordenadas_vistas:
-                    self.padres[derecha] = posicion
-                    self.coordenadas_vistas.add(derecha)
-                    cola.put(derecha)
-            if self.agente.es_coordenada_valida_horizontal(-desplazamiento):
-                if izquierda not in self.coordenadas_vistas:
-                    self.padres[izquierda] = posicion
-                    self.coordenadas_vistas.add(izquierda)
-                    cola.put(izquierda)
-            if self.agente.es_coordenada_valida_vertical(desplazamiento):
-                if arriba not in self.coordenadas_vistas:
-                    self.padres[arriba] = posicion
-                    self.coordenadas_vistas.add(arriba)
-                    cola.put(arriba)
-            if self.agente.es_coordenada_valida_vertical(-desplazamiento):
-                if abajo not in self.coordenadas_vistas:
-                    self.padres[abajo] = posicion
-                    self.coordenadas_vistas.add(abajo)
-                    cola.put(abajo)
+            movimientos = [
+                ((0, desplazamiento), self.agente.es_coordenada_valida_horizontal),
+                ((0, -desplazamiento), self.agente.es_coordenada_valida_horizontal),
+                ((desplazamiento, 0), self.agente.es_coordenada_valida_vertical),
+                ((-desplazamiento, 0), self.agente.es_coordenada_valida_vertical)
+            ]
+
+            for (avance_x, avance_y), movimiento_valido in movimientos:
+                coordenada_avance = (self.agente.fila + avance_x, self.agente.columna + avance_y)
+                if movimiento_valido(siguiente_desplazamiento):
+                    if coordenada_avance not in self.coordenadas_vistas:
+                        self.padres[coordenada_avance] = posicion
+                        self.coordenadas_vistas.add(coordenada_avance)
+                        cola.put(coordenada_avance)
+                siguiente_desplazamiento *= -1
 
             self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORADO
 
         return (False, [])
 
     def ucs_solucion(self, tiempo):
+        return self.__best_first_search(tiempo, lambda coord : 0)
+
+    def a_star(self, tiempo):
+        distancia_manhattan = lambda coord: abs(coord[0] - self.objetivo[0]) + abs(coord[1] - self.objetivo[1])
+        return self.__best_first_search(tiempo, distancia_manhattan)
+
+
+    def __best_first_search(self, tiempo, heuristica):
         cola = PriorityQueue()
         inicio = (self.agente.fila, self.agente.columna)
         cola.put((0, inicio))
@@ -187,43 +187,34 @@ class Tablero:
                 camino.reverse()
                 return (True, camino)
 
-            desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
-            derecha = (self.agente.fila, self.agente.columna + desplazamiento)
-            izquierda = (self.agente.fila, self.agente.columna - desplazamiento)
-            arriba = (self.agente.fila + desplazamiento, self.agente.columna)
-            abajo = (self.agente.fila - desplazamiento, self.agente.columna)
+            siguiente_desplazamiento = desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
 
-            if self.agente.es_coordenada_valida_horizontal(desplazamiento):
-                if derecha not in self.coordenadas_vistas:
-                    self.padres[derecha] = (posicion, desplazamiento + self.padres[posicion][1])
-                    self.coordenadas_vistas.add(derecha)
-                    cola.put((desplazamiento + self.padres[posicion][1], derecha))
-            if self.agente.es_coordenada_valida_horizontal(-desplazamiento):
-                if izquierda not in self.coordenadas_vistas:
-                    self.padres[izquierda] = (posicion, desplazamiento + self.padres[posicion][1])
-                    self.coordenadas_vistas.add(izquierda)
-                    cola.put((desplazamiento + self.padres[posicion][1], izquierda))
-            if self.agente.es_coordenada_valida_vertical(desplazamiento):
-                if arriba not in self.coordenadas_vistas:
-                    self.padres[arriba] = (posicion, desplazamiento + self.padres[posicion][1])
-                    self.coordenadas_vistas.add(arriba)
-                    cola.put((desplazamiento + self.padres[posicion][1], arriba))
-            if self.agente.es_coordenada_valida_vertical(-desplazamiento):
-                if abajo not in self.coordenadas_vistas:
-                    self.padres[abajo] = (posicion, desplazamiento + self.padres[posicion][1])
-                    self.coordenadas_vistas.add(abajo)
-                    cola.put((desplazamiento + self.padres[posicion][1], abajo))
+            movimientos = [
+                ((0, desplazamiento), self.agente.es_coordenada_valida_horizontal),
+                ((0, -desplazamiento), self.agente.es_coordenada_valida_horizontal),
+                ((desplazamiento, 0), self.agente.es_coordenada_valida_vertical),
+                ((-desplazamiento, 0), self.agente.es_coordenada_valida_vertical)
+            ]
+
+            for (avance_x, avance_y), movimiento_valido in movimientos:
+                coordenada_avance = (self.agente.fila + avance_x, self.agente.columna + avance_y)
+                if movimiento_valido(siguiente_desplazamiento):
+                    if coordenada_avance not in self.coordenadas_vistas:
+                        self.padres[coordenada_avance] = (posicion, desplazamiento + self.padres[posicion][1])
+                        self.coordenadas_vistas.add(coordenada_avance)
+                        cola.put((desplazamiento + self.padres[posicion][1] + heuristica(posicion), coordenada_avance))
+                siguiente_desplazamiento *= -1
 
             self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORADO
 
         return (False, [])
 
-
     def mostrar_sin_solucion(self):
         self.__mensaje_final("No hay solucion", RED)
 
-    def mostrar_con_solucion(self):
-        self.__mensaje_final(f"Se encontro solucion {self.agente.movimientos_dados}", GREEN)
+    def mostrar_con_solucion(self, largo_camino):
+        self.__mensaje_final(f"Pasos dados {self.agente.movimientos_dados}\n"
+                             f"Largo de camino {largo_camino}", GREEN)
 
     def dibujar_camino(self, camino, color=BLACK, grosor=3):
         if len(camino) < 2:
