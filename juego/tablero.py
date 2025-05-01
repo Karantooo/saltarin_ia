@@ -20,8 +20,8 @@ class Tablero:
         ]
         self.agente = Agente(*inicio,columnas - 1, filas - 1)
         self.tamano_celda = TAM_CASILLA
-        self.ancho = max(columnas * self.tamano_celda, self.tamano_celda * 4)
-        self.alto = (filas + 1) * self.tamano_celda
+        self.ancho = max(columnas * self.tamano_celda, self.tamano_celda * 5)
+        self.alto = (filas + 3) * self.tamano_celda
         self.ventana = pygame.display.set_mode((self.ancho, self.alto))
 
         self.coordenadas_vistas = set()
@@ -33,6 +33,7 @@ class Tablero:
         self.__objetivo_dibujar()
         self.__agente_dibujar()
         self.__movimientos_cantidad_dibujar()
+        self.__leyenda_dibujar()
 
         pygame.display.flip()
 
@@ -73,6 +74,7 @@ class Tablero:
 
         self.coordenadas_vistas.add(coordenadas)
         self.dibujar()
+        self.__cerrar_ventana()
         time.sleep(tiempo)
 
         desplazamiento = self.casillas[self.agente.fila][self.agente.columna].valor
@@ -92,6 +94,7 @@ class Tablero:
 
                 self.agente.fila, self.agente.columna = fila_orig, col_orig
                 self.dibujar()
+                self.__cerrar_ventana()
                 time.sleep(tiempo)
         self.casillas[self.agente.fila][self.agente.columna].explorado = EstadosExploracion.EXPLORADO
         self.dibujar()
@@ -111,6 +114,7 @@ class Tablero:
             self.agente.fila = posicion[0]
             self.agente.columna = posicion[1]
             self.agente.movimientos_dados += 1
+            self.__cerrar_ventana()
             time.sleep(tiempo)
             self.dibujar()
 
@@ -169,6 +173,7 @@ class Tablero:
             self.agente.fila = posicion[0]
             self.agente.columna = posicion[1]
             self.agente.movimientos_dados += 1
+            self.__cerrar_ventana()
             time.sleep(tiempo)
             self.dibujar()
 
@@ -263,6 +268,24 @@ class Tablero:
         og_y = self.objetivo[0] * self.tamano_celda
         pygame.draw.rect(self.ventana, GREEN, (og_x, og_y, self.tamano_celda, self.tamano_celda))
 
+    def __leyenda_dibujar(self):
+        og_x, og_y = (0, (self.filas + 1) * self.tamano_celda)
+        pygame.draw.rect(self.ventana, EstadosExploracion.EXPLORANDO, (og_x, og_y, self.tamano_celda, self.tamano_celda))
+        texto = pygame.font.SysFont(None, 24).render(
+            "Casilla explorando",
+            True,
+            BLACK
+        )
+        self.ventana.blit(texto, (self.tamano_celda, (self.filas + 1.5) * self.tamano_celda))
+        og_x,  og_y = (0, (self.filas + 2) * self.tamano_celda)
+        pygame.draw.rect(self.ventana, EstadosExploracion.EXPLORADO, (og_x, og_y, self.tamano_celda, self.tamano_celda))
+        texto = pygame.font.SysFont(None, 24).render(
+            "Casilla explorada",
+            True,
+            BLACK
+        )
+        self.ventana.blit(texto, (self.tamano_celda, (self.filas + 2.5) * self.tamano_celda))
+
     def __tablero_dibujar(self):
         self.ventana.fill(WHITE)
         for i in range(self.filas):
@@ -276,4 +299,10 @@ class Tablero:
                 valor = self.casillas[i][j].valor
                 texto = pygame.font.SysFont(None, 24).render(str(valor), True, BLACK)
                 self.ventana.blit(texto, (x + 20, y + 20))
+
+    def __cerrar_ventana(self):
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                exit()
 

@@ -51,7 +51,7 @@ def set_valor_tiempo(value: float):
     global tiempo_entre_pasos
     tiempo_entre_pasos = value
 
-def mostrar_menu() -> Tuple[str, str]:
+def mostrar_menu():
     pygame.init()
     surface = pygame.display.set_mode((600, 400))
     pygame.display.set_caption("Selector de archivo y algoritmo")
