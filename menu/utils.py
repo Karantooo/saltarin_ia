@@ -1,7 +1,9 @@
+import os
+
 def leer_tableros(nombre_archivo):
     with open(nombre_archivo, 'r') as archivo:
         lineas = archivo.readlines()
-    print(lineas)
+
     tableros = []
     i = 0
     while i < len(lineas):
@@ -13,7 +15,7 @@ def leer_tableros(nombre_archivo):
 
         # Leer m, n, inicio y objetivo
         valores = list(map(int, lineas[i].split()))
-        print(valores)
+
         m, n = valores[0], valores[1]
         inicio = (valores[2], valores[3])
         objetivo = (valores[4], valores[5])
@@ -30,3 +32,17 @@ def leer_tableros(nombre_archivo):
         tableros.append((m, n, inicio, objetivo, matriz_valores))
 
     return tableros
+
+
+def guardar_log(nombre_archivo, contenido):
+    carpeta_logs = "logs"
+
+    if not os.path.exists(carpeta_logs):
+        os.makedirs(carpeta_logs)
+
+    nombre_archivo = nombre_archivo.replace("*", "star")
+
+    ruta_completa = os.path.join(carpeta_logs, nombre_archivo)
+
+    with open(ruta_completa, "w", encoding="utf-8") as archivo:
+        archivo.write(contenido)

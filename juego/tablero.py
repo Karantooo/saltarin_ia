@@ -4,7 +4,8 @@ from juego.agente import Agente
 import time
 from queue import Queue, PriorityQueue
 from juego.casilla import Casilla, EstadosExploracion
-
+import os
+os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 class Tablero:
     def __init__(self, filas, columnas, inicio, objetivo, matriz_valores):
@@ -53,7 +54,7 @@ class Tablero:
                         self.agente.mover_horizontal(-desplazamiento)
 
                     if (self.agente.fila, self.agente.columna) == (self.objetivo[0], self.objetivo[1]):
-                        print("GG")
+
                         corriendo = False
 
             self.dibujar()
@@ -87,7 +88,6 @@ class Tablero:
                 if respuesta[0]:
                     respuesta[1].append(coordenadas)
                     antes_de_enviar = [True, respuesta[1]]
-                    print(antes_de_enviar)
                     return antes_de_enviar
 
                 self.agente.fila, self.agente.columna = fila_orig, col_orig
@@ -206,10 +206,12 @@ class Tablero:
 
     def mostrar_sin_solucion(self):
         self.__mensaje_final("No hay solucion", RED)
+        return "No hay solucion"
 
     def mostrar_con_solucion(self, largo_camino):
-        self.__mensaje_final(f"Pasos dados {self.agente.movimientos_dados}\n"
-                             f"Largo de camino {largo_camino}", GREEN)
+        mensaje = f"Pasos dados {self.agente.movimientos_dados} Largo de camino {largo_camino}"
+        self.__mensaje_final(mensaje, GREEN)
+        return mensaje
 
     def dibujar_camino(self, camino, color=BLACK, grosor=3):
         if len(camino) < 2:
